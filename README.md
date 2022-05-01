@@ -33,6 +33,8 @@ Assuming you are in the ```src``` folder and that you have a connected terminal 
 
 ```
 $DeploymentParameters = @{
+    PAT = "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"
+
     SubscriptionId = "cc367ab3-523d-46b2-806a-1267b35bd7ca"
     Region = "westeurope"
 

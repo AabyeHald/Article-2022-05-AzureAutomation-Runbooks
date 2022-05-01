@@ -15,8 +15,41 @@
     1. Vnet
     2. Windows 2019 servers as workers.
     The workers are installed with the MMA and Dependency agents as one would do with normal Azure based VMs.
+.PARAMETER PAT
+    Personal Access Token to GitHub Repo with Runbooks
+.PARAMETER SubscriptionId
+    The ID of the target Subscription
+.PARAMETER Region
+    The name of the target Region
+.PARAMETER ResourceGroupNameAutomationAccount
+    The Resource Group name for the Automation Account
+.PARAMETER AutomationAccountName
+    The name of the Automation 
+.PARAMETER ResourceGroupNameLogAnalyticsWorkspace
+    The Resource Group name for the Log Analytics Workspace
+.PARAMETER LogAnalyticsWorkspaceName
+    The name of the Log Analytics Workspace
+.PARAMETER ResourceGroupNameVirtualNetwork
+    The Resource Group name for the Virtual Network containing the workers
+.PARAMETER LinkWorkspace
+    Should we link the Workspace (Log-Analytics and Automation Account)
+.PARAMETER ResourceGroupNameVirtualNetwork
+    The Resource Group name for the Virtual Network containing the workers
+.PARAMETER VirtualNetworkName
+    The name of the Virtual Network
+.PARAMETER VirtualNetworkPrefix
+    The address space of the virtual network (CIDR Prefix)
+.PARAMETER WorkerSubnetPrexix
+    The address space for the workers subnet (CIDR Prefix)
+.PARAMETER ResourceGroupNameWorker
+    The Resource Group name for the workers
+.PARAMETER WorkerCount
+    The number of workers to deploy
+.PARAMETER WorkerName
+    The Virtual Machine (Worker) name, without the -001 postfix
 .EXAMPLE
     $DeploymentParameters = @{
+        PAT = "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"
         SubscriptionId = "cc367ab3-523d-46b2-806a-1267b35bd7ca"
         Region = "westeurope"
 
@@ -82,6 +115,10 @@
     - Modules: Az (version 7.4.0)
 #>
 param (
+    # Personal Access Token to GitHub Repo with Runbooks
+    [parameter(Mandatory=$true)]
+    [string]$PAT,
+
     # The ID of the target Subscription
     [parameter(Mandatory=$true)]
     [string]$SubscriptionId,
@@ -193,3 +230,25 @@ $DeploymentParameters = @{
 }
 
 & $ScriptPath\Deploy-Workers.ps1 @DeploymentParameters
+
+# Configure Source Control
+Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Configuring Source Control"
+$RepoURL = "https://github.com/AabyeHald/Article-2022-05-AzureAutomation-Runbooks.git"
+$RunbookPath = "/src/runbooks"
+$Branch = "main"
+$AccessToken = ConvertTo-SecureString -String $PAT -AsPlainText -Force
+
+Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Granting Automation Account Contributor on own Resource Group"
+$AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $ResourceGroupNameAutomationAccount -Name $AutomationAccountName
+$null = New-AzRoleAssignment -ObjectId $AutomationAccount.Identity.PrincipalId `
+    -ResourceGroupName $AutomationAccount.ResourceGroupName -RoleDefinitionName "Contributor"
+
+Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Linking Automation Account to git"
+$null = New-AzAutomationSourceControl -Name "DemoRunbooks" -RepoUrl $RepoURL `
+    -SourceType GitHub -FolderPath $RunbookPath `
+    -Branch $Branch -AccessToken $AccessToken -EnableAutoSync `
+    -ResourceGroupName $ResourceGroupNameAutomationAccount -AutomationAccountName $AutomationAccountName
+
+Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Starting initial sync"
+$null = Start-AzAutomationSourceControlSyncJob -SourceControlName "DemoRunbooks" `
+    -ResourceGroupName $ResourceGroupNameAutomationAccount -AutomationAccountName $AutomationAccountName
