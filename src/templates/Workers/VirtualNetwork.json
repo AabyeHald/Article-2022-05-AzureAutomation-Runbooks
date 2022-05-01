@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VirtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Virtual Network"
+            }
+        },
+        "VirtualNetworkPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space of the virtual network (CIDR Prefix)"
+            }
+        },
+        "Subnets": {
+            "type": "array",
+            "metadata": {
+                "description": "A hashtable containing the required subnets"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('VirtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('VirtualNetworkPrefix')]"
+                    ]
+                },
+                "copy": [
+                    {
+                        "name": "Subnets",
+                        "count": "[length(parameters('Subnets'))]",
+                        "input": {
+                            "name": "[parameters('Subnets')[copyIndex('Subnets')].Name]",
+                            "properties": {
+                                "addressPrefix": "[parameters('Subnets')[copyIndex('Subnets')].AddressPrefix]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,109 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "VirtualMachineName": {
+            "type": "string",
+            "metadata": {
+                "description": "The Virtual Machine name, without the -001 postfix"
+            }
+        },
+        "VirtualMachineCount": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of Virtual Machines to deploy"
+            }
+        },
+        "ResourceGroupNameVirtualNetwork": {
+            "type": "string",
+            "metadata": {
+                "description": "The Resource Group name for the Virtual Network containing the Virtual Machines"
+            }
+        },
+        "VirtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Virtual Network"
+            }
+        },
+        "VirtualMachineSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The Virtual Machine subnet name"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[concat('nic-', parameters('VirtualMachineName'), '-', copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "NicLoop",
+                "count": "[parameters('VirtualMachineCount')]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfiguration1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId(parameters('ResourceGroupNameVirtualNetwork'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VirtualNetworkName'), parameters('VirtualMachineSubnetName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat('vm-', parameters('VirtualMachineName'), '-', copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "NicLoop"
+            ],
+            "copy": {
+                "name": "VMLoop",
+                "count": "[parameters('VirtualMachineCount')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D2as_v5"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat('os-', parameters('VirtualMachineName'), '-', copyIndex(1))]",
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    }
+                },
+                "osProfile": {
+                    "computerName": "[concat('vm-', parameters('VirtualMachineName'), '-', copyIndex(1))]",
+                    "adminUsername": "demoadmin",
+                    "adminPassword": "[guid(parameters('VirtualMachineName'))]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-', parameters('VirtualMachineName'), '-', copyIndex(1)))]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

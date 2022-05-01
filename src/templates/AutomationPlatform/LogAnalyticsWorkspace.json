@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "LogAnalyticsWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Log Analytics Workspace"
+            }
+        },
+        "Solutions": {
+            "type": "array",
+            "defaultValue": [
+                "ChangeTracking",
+                "Updates",
+                "VMInsights"
+            ],
+            "metadata": {
+                "description": "The list of solutions to deploy"
+            }
+        },
+        "ResourceGroupNameAutomationAccount": {
+            "type": "string",
+            "metadata": {
+                "description": "The Resource Group name for the Automation Account"
+            }
+        },
+        "AutomationAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Automation Account"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('LogAnalyticsWorkspaceName')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2021-06-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                }
+            },
+            "resources": [
+                {
+                    "condition": "[greater(length(parameters('AutomationAccountName')), 0)]",
+                    "name": "[concat(parameters('LogAnalyticsWorkspaceName'), '/', 'Automation')]",
+                    "type": "Microsoft.OperationalInsights/workspaces/linkedServices",
+                    "apiVersion": "2020-08-01",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "resourceId": "[resourceId(parameters('ResourceGroupNameAutomationAccount'), 'Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[concat(parameters('Solutions')[copyIndex()], '(', parameters('LogAnalyticsWorkspaceName'), ')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
+            ],
+            "copy": {
+                "name": "SolutionsLoop",
+                "count": "[length(parameters('Solutions'))]"
+            },
+            "plan": {
+                "name": "[concat(parameters('Solutions')[copyIndex()], '(', parameters('LogAnalyticsWorkspaceName'), ')')]",
+                "product": "[concat('OMSGallery/', parameters('Solutions')[copyIndex()])]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
+            }
+        }
+    ],
+    "outputs": {}
+}
