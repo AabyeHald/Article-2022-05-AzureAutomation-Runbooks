@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    [To be written later]
+    [To be written]
 .DESCRIPTION
     [To be written]
 .INPUTS

@@ -240,8 +240,14 @@ $AccessToken = ConvertTo-SecureString -String $PAT -AsPlainText -Force
 
 Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Granting Automation Account Contributor on own Resource Group"
 $AutomationAccount = Get-AzAutomationAccount -ResourceGroupName $ResourceGroupNameAutomationAccount -Name $AutomationAccountName
-$null = New-AzRoleAssignment -ObjectId $AutomationAccount.Identity.PrincipalId `
-    -ResourceGroupName $AutomationAccount.ResourceGroupName -RoleDefinitionName "Contributor"
+$CurrentRole = Get-AzRoleAssignment -ObjectId $AutomationAccount.Identity.PrincipalId | Where-Object Scope -like $(Get-AzResourceGroup -Name $ResourceGroupNameAutomationAccount).ResourceId
+if ($CurrentRole.RoleDefinitionName -ne "Contributor") {
+    $null = New-AzRoleAssignment -ObjectId $AutomationAccount.Identity.PrincipalId `
+        -ResourceGroupName $AutomationAccount.ResourceGroupName -RoleDefinitionName "Contributor"
+}
+else {
+    Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Role already exists"
+}
 
 Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Linking Automation Account to git"
 $null = New-AzAutomationSourceControl -Name "DemoRunbooks" -RepoUrl $RepoURL `
