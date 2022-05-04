@@ -50,6 +50,8 @@
 .EXAMPLE
     $DeploymentParameters = @{
         PAT = "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"
+        RepoURL = "https://github.com/AabyeHald/Article-2022-05-AzureAutomation-Runbooks.git"
+        
         SubscriptionId = "cc367ab3-523d-46b2-806a-1267b35bd7ca"
         Region = "westeurope"
 
@@ -118,6 +120,10 @@ param (
     # Personal Access Token to GitHub Repo with Runbooks
     [parameter(Mandatory=$true)]
     [string]$PAT,
+
+    # Repository for the Source Control
+    [parameter(Mandatory=$true)]
+    [string]$RepoURL,
 
     # The ID of the target Subscription
     [parameter(Mandatory=$true)]
