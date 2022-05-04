@@ -28,7 +28,7 @@ The following prerequisites needs to be met before the repository can be used:
 ## Howto Deploy
 If the prerequisites are met, the actual deployment should be easy.
 
-Clone this repository to a repository in your own GitHub Account, this will provide the "backend" for the Source Control. 
+Clone this repository to a repository in your own GitHub Account, this will provide the "backend" for the Source Control, then make a copy of the repository available locally for script execution.
 
 Building a parameter object with all the input parameters, then run the script. Only the PAT and RepoURL are required to be changed to match you environment.<br>
 Assuming you are in the ```src``` folder and that you have a connected terminal (using ```Connect-AzAccount```), this is how to deploy:
