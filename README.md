@@ -79,7 +79,7 @@ Article-2022-05-AzureAutomation-Runbooks
     │   Deploy-All.ps1                          # Deploy all script, that uses the other deployment scripts for deployment
     │   
     ├───runbooks                                # Runbook folder, contents to be synced to Azure Automation Account
-    │       DemoRunbook.ps1
+    │       Demo-RunbookTemplate.ps1
     │       
     ├───scripts                                 # Deployment scripts
     │       Deploy-AutomationPlatform.ps1       # Deployment script for the Azure based Automation Platform
