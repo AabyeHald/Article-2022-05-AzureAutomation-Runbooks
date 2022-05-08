@@ -18,7 +18,7 @@
 .NOTES
     Tested using:
     - PowerShell Core 7.2.3
-    - Modules: Az (version 7.4.0)
+    - Modules: Az (version 7.5.0)
 #>
 param (
     # Use this Azure Automation Connection, requires connection and SPN configuration
