@@ -259,7 +259,7 @@ Add-HybridRunbookWorker -GroupName "HybridWorkers" -Url $($RegistrationInfo.Endp
     foreach ($VM in Get-AzVM -ResourceGroupName $ResourceGroupNameWorker) {
         Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Registering VM: $($VM.Name)"
         $null = Invoke-AzVMRunCommand -ResourceGroupName $ResourceGroupNameWorker -VMName $VM.Name `
-        -ScriptPath ".\Script.ps1" -CommandId "RunPowerShellScript" -AsJob
+            -ScriptPath ".\Script.ps1" -CommandId "RunPowerShellScript" -AsJob
     }
     Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Cleaning up RunCommand Script"
     Remove-Item ".\Script.ps1" -Force
