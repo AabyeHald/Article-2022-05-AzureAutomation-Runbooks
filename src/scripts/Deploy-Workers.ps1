@@ -251,12 +251,18 @@ if ($WorkerCount -gt 0) {
     $RegistrationInfo = Get-AzAutomationRegistrationInfo -ResourceGroupName $ResourceGroupNameAutomationAccount -AutomationAccountName $AutomationAccountName
 
     Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Generating RunCommand Script"
-@"
-Import-Module "C:\Program Files\Microsoft Monitoring Agent\Agent\AzureAutomation\7.3.1417.0\HybridRegistration\HybridRegistration.psd1"
-Add-HybridRunbookWorker -GroupName "HybridWorkers" -Url $($RegistrationInfo.Endpoint) -Key $($RegistrationInfo.PrimaryKey)
-"@ | Out-File Script.ps1
 
-    foreach ($VM in Get-AzVM -ResourceGroupName $ResourceGroupNameWorker) {
+@'
+$RootPath = "C:\Program Files\Microsoft Monitoring Agent\Agent\AzureAutomation\"
+$Version = $(Get-ChildItem $RootPath | Sort-Object Name -Descending | Select-Object -First 1).Name
+$ModuleFullName = Join-Path -Path $(Join-Path -Path $RootPath -ChildPath $Version) -ChildPath "HybridRegistration\HybridRegistration.psd1"
+Import-Module $ModuleFullName
+'@ | Out-File Script.ps1
+@"
+Add-HybridRunbookWorker -GroupName "HybridWorkers" -Url $($RegistrationInfo.Endpoint) -Key $($RegistrationInfo.PrimaryKey)
+"@ | Out-File .\Script.ps1 -Append
+
+    foreach ($VM in $(Get-AzVM -ResourceGroupName $ResourceGroupNameWorker)) {
         Write-Verbose -Message "$($MyInvocation.MyCommand.Name) `t`t- $(Get-Date -Format o -AsUTC) - Registering VM: $($VM.Name)"
         $null = Invoke-AzVMRunCommand -ResourceGroupName $ResourceGroupNameWorker -VMName $VM.Name `
             -ScriptPath ".\Script.ps1" -CommandId "RunPowerShellScript" -AsJob
