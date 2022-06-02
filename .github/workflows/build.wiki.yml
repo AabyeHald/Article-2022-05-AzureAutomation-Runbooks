@@ -1,0 +1,45 @@
+name: build.wiki
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  RepositoryName: ${{ github.repository }}
+  RepositoryWikiName: ${{ github.repository }}.wiki
+
+jobs:
+  buildWiki:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout Source Repository
+      - name: Checkout Repo ${{ env.RepositoryName }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.RepositoryName }}
+          path: ${{ env.RepositoryName }}
+      # Checkout Wiki Repository
+      - name: Checkout Repo ${{ env.RepositoryWikiName }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.RepositoryWikiName }}
+          path: ${{ env.RepositoryWikiName }}
+      # Execute the Build scripts
+      - name: Build the Wiki
+        shell: pwsh
+        run: '.\${{ env.RepositoryName }}\build\build.wiki.ps1'
+      # Commit the Wiki Repository
+      - name: Commit repository ${{ env.RepositoryWikiName }}
+        shell: pwsh
+        run: |
+          cd $env:RepositoryWikiName
+          git add --all
+          git config user.email WikiUser@aabyehald
+          git config user.name WikiUser
+          git commit --all -message="Wiki Commit"
+          git push origin HEAD:master
