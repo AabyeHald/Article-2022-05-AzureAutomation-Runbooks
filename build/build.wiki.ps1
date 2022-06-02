@@ -18,7 +18,7 @@
 #>
 
 # The repository root is in the folder $env:RepositoryName - The "ChildPath" is where the scripts to be included are found
-$SourceFolder = Join-Path -Path $env:RepositoryName -ChildPath "src"
+$SourceFolder = Join-Path -Path $env:RepositoryName -ChildPath "src" -AdditionalChildPath "runbooks"
 
 # Cleanup the existing Wiki, excluding the frontpage named "Home.md"
 Remove-Item $(Join-Path -Path $env:RepositoryWikiName -ChildPath "\*.md") -Exclude "Home.md" -Recurse -Force
