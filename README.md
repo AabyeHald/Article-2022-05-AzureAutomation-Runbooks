@@ -3,7 +3,7 @@
 
 This is a very simple automation platform, based on Azure Automation and Log-Analytics. This type of platform is in my mind central for operating Azure at any kind of scale - hence it is essential to fully understand what it can do, which in engineering terms means kicking some tires and getting the hands dirty.
 
-This repository is accompanied by the article: [Azure Automation - Runbooks](https://blog.aabyehald.com/article/Azure-Automation-Runbooks/) - Not published yet
+This repository is accompanied by the article: [Azure Automation - Runbooks](https://blog.aabyehald.com/article/Azure-Automation-Runbooks/)
 
 In this README, it is enough to state that the deployed platform contains the following components:
 
@@ -71,8 +71,12 @@ Depending on your choice of parameters, after the script execution has completed
 Article-2022-05-AzureAutomation-Runbooks
 │   LICENSE
 │   README.md
+|
+├───.github
+│   └───workflows                               # GitHub Workflow folder
+│           build.wiki.yml                      # Workflow that builds the Wiki
 │   
-├───build                                       # Build script folder
+├───build                                       # Build scripts folder
 │       build.wiki.ps1                          # Script to build the wiki
 │       
 └───src                                         # Sourcecode folder
